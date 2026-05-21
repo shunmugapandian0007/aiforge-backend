@@ -6,8 +6,8 @@ COPY . .
 
 RUN chmod +x mvnw
 
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw package -DskipTests
 
 EXPOSE 8080
 
-CMD ["java", "-jar", "target/aiforge-backend-0.0.1-SNAPSHOT.jar"]
+CMD ["java","-jar","target/aiforge-backend-0.0.1-SNAPSHOT.jar"]
