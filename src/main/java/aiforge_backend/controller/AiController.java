@@ -134,13 +134,14 @@ public class AiController {
                     MediaType.APPLICATION_JSON
             );
 
-            aiHeaders.setBearerAuth(
-                    openrouterApiKey
+            aiHeaders.set(
+                    "Authorization",
+                    "Bearer " + openrouterApiKey
             );
 
             aiHeaders.set(
                     "HTTP-Referer",
-                    "http://localhost:5173"
+                    "https://aiforge-gray.vercel.app"
             );
 
             aiHeaders.set(
@@ -150,10 +151,6 @@ public class AiController {
 
             Map<String, Object> aiBody =
                     new HashMap<>();
-
-            /* =========================
-               WORKING MODEL
-            ========================= */
 
             aiBody.put(
                     "model",
@@ -173,7 +170,6 @@ public class AiController {
 
             systemMessage.put(
                     "content",
-
                     "You are AIForge AI assistant. "
                             +
                             "Answer clearly and professionally. "
