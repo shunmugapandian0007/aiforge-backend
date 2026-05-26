@@ -152,10 +152,10 @@ public class AiController {
             Map<String, Object> aiBody =
                     new HashMap<>();
 
-            aiBody.put(
-                    "model",
-                    "mistralai/mistral-7b-instruct"
-            );
+           aiBody.put(
+    "model",
+    "openai/gpt-3.5-turbo"
+);
 
             List<Map<String, String>> messages =
                     new ArrayList<>();
