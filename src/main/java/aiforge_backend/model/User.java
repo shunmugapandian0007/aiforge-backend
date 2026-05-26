@@ -1,65 +1,65 @@
-package aiforge_backend.model;
+// package aiforge_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+// import jakarta.persistence.Entity;
+// import jakarta.persistence.GeneratedValue;
+// import jakarta.persistence.GenerationType;
+// import jakarta.persistence.Id;
 
-@Entity
+// @Entity
 
-public class User {
+// public class User {
 
-    @Id
+//     @Id
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
-    private Long id;
+//     private Long id;
 
-    private String name;
+//     private String name;
 
-    private String email;
+//     private String email;
 
-    private String password;
+//     private String password;
 
-    // GETTERS & SETTERS
+//     // GETTERS & SETTERS
 
-    public Long getId() {
+//     public Long getId() {
 
-        return id;
-    }
+//         return id;
+//     }
 
-    public void setId(Long id) {
+//     public void setId(Long id) {
 
-        this.id = id;
-    }
+//         this.id = id;
+//     }
 
-    public String getName() {
+//     public String getName() {
 
-        return name;
-    }
+//         return name;
+//     }
 
-    public void setName(String name) {
+//     public void setName(String name) {
 
-        this.name = name;
-    }
+//         this.name = name;
+//     }
 
-    public String getEmail() {
+//     public String getEmail() {
 
-        return email;
-    }
+//         return email;
+//     }
 
-    public void setEmail(String email) {
+//     public void setEmail(String email) {
 
-        this.email = email;
-    }
+//         this.email = email;
+//     }
 
-    public String getPassword() {
+//     public String getPassword() {
 
-        return password;
-    }
+//         return password;
+//     }
 
-    public void setPassword(String password) {
+//     public void setPassword(String password) {
 
-        this.password = password;
-    }
-}
+//         this.password = password;
+//     }
+// }

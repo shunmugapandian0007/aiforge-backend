@@ -1,218 +1,257 @@
 package aiforge_backend.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @CrossOrigin("*")
-
 public class AiController {
 
+    @Value("${tavily.api.key}")
+    private String tavilyApiKey;
+
     @Value("${openrouter.api.key}")
-    private String apiKey;
+    private String openrouterApiKey;
 
-    private final WebClient webClient =
-            WebClient.builder().build();
-
-    @PostMapping("/generate")
-
-    public Object generateContent(
-            @RequestBody Map<String, String> body
+    @GetMapping("/generate")
+    public Map<String, String> generate(
+            @RequestParam String prompt
     ) {
+
+        Map<String, String> result =
+                new HashMap<>();
 
         try {
 
-            String userPrompt =
-                    body.get("prompt");
+            RestTemplate restTemplate =
+                    new RestTemplate();
 
-            String lowerPrompt =
-                    userPrompt.toLowerCase();
+            /* =========================
+               TAVILY SEARCH
+            ========================= */
 
-            // =========================
-            // LIVE CURRENT DATA
-            // =========================
+            String tavilyUrl =
+                    "https://api.tavily.com/search";
 
-            String liveData = "";
+            HttpHeaders tavilyHeaders =
+                    new HttpHeaders();
 
-            if(
+            tavilyHeaders.setContentType(
+                    MediaType.APPLICATION_JSON
+            );
 
-                    lowerPrompt.contains("today")
-                    ||
+            Map<String, Object> tavilyBody =
+                    new HashMap<>();
 
-                    lowerPrompt.contains("current")
-                    ||
+            tavilyBody.put(
+                    "api_key",
+                    tavilyApiKey
+            );
 
-                    lowerPrompt.contains("latest")
-                    ||
+            tavilyBody.put(
+                    "query",
+                    prompt
+            );
 
-                    lowerPrompt.contains("cm")
-                    ||
+            tavilyBody.put(
+                    "search_depth",
+                    "advanced"
+            );
 
-                    lowerPrompt.contains("news")
-            ){
+            tavilyBody.put(
+                    "max_results",
+                    5
+            );
 
-                try{
+            HttpEntity<Map<String, Object>>
+                    tavilyRequest =
+                    new HttpEntity<>(
+                            tavilyBody,
+                            tavilyHeaders
+                    );
 
-                    Document doc = Jsoup.connect(
-                            "https://en.wikipedia.org/wiki/Chief_Minister_of_Tamil_Nadu"
-                    ).get();
+            ResponseEntity<Map> tavilyResponse =
+                    restTemplate.exchange(
+                            tavilyUrl,
+                            HttpMethod.POST,
+                            tavilyRequest,
+                            Map.class
+                    );
 
-                    String text =
-                            doc.text();
+            List<Map<String, Object>> results =
+                    (List<Map<String, Object>>)
+                            tavilyResponse
+                                    .getBody()
+                                    .get("results");
 
-                    liveData =
-                            "LIVE INTERNET DATA: " + text;
+            StringBuilder liveData =
+                    new StringBuilder();
 
-                }
+            if (results != null) {
 
-                catch(Exception ex){
+                for (
+                        Map<String, Object> item
+                                : results
+                ) {
 
-                    liveData =
-                            "No live data available";
+                    Object content =
+                            item.get("content");
+
+                    if (content != null) {
+
+                        liveData
+                                .append(content.toString())
+                                .append("\n\n");
+                    }
                 }
             }
 
-            // =========================
-            // SYSTEM PROMPT
-            // =========================
+            /* =========================
+               OPENROUTER AI
+            ========================= */
 
-     String systemPrompt = """
-
-You are AIForge.
-
-You are a modern conversational AI assistant exactly like ChatGPT.
-
-RULES:
-
-- Reply naturally like a real human assistant.
-- Be smart, modern, friendly, and conversational.
-- Give clean formatted answers.
-- Use markdown formatting.
-- Use proper code blocks for programming.
-- Explain clearly.
-- Use headings and bullet points when needed.
-- If user asks coding questions:
-  - give clean professional code
-  - explain step by step
-  - format code beautifully
-- Never give robotic replies.
-- Never repeat the question.
-- Never say "As an AI language model".
-- Never mention knowledge cutoff.
-- Sound exactly like ChatGPT.
-- Keep answers visually clean.
-- For short questions give short answers.
-- For complex questions give detailed answers.
-- Match user's language style.
-- If user speaks Tamil-English mix, reply naturally in Tamil-English mix.
-- Act premium and intelligent.
-
-""";
-
-            // =========================
-            // USER MESSAGE
-            // =========================
-
-            String finalPrompt =
-
-                    liveData +
-
-                    "\n\nUser Question:\n"
-
-                    + userPrompt;
-
-            // =========================
-            // OPENROUTER API
-            // =========================
-
-            String url =
+            String aiUrl =
                     "https://openrouter.ai/api/v1/chat/completions";
 
-            Map<String, Object> requestBody =
-                    Map.of(
+            HttpHeaders aiHeaders =
+                    new HttpHeaders();
 
-                            "model",
-                            "openai/gpt-4o-mini",
+            aiHeaders.setContentType(
+                    MediaType.APPLICATION_JSON
+            );
 
-                            "messages",
+            aiHeaders.setBearerAuth(
+                    openrouterApiKey
+            );
 
-                            List.of(
+            aiHeaders.set(
+                    "HTTP-Referer",
+                    "http://localhost:5173"
+            );
 
-                                    Map.of(
-                                            "role",
-                                            "system",
+            aiHeaders.set(
+                    "X-Title",
+                    "AIForge"
+            );
 
-                                            "content",
-                                            systemPrompt
-                                    ),
+            Map<String, Object> aiBody =
+                    new HashMap<>();
 
-                                    Map.of(
-                                            "role",
-                                            "user",
+            /* =========================
+               WORKING MODEL
+            ========================= */
 
-                                            "content",
-                                            finalPrompt
-                                    )
-                            )
+            aiBody.put(
+                    "model",
+                    "openai/gpt-3.5-turbo"
+            );
+
+            List<Map<String, String>> messages =
+                    new ArrayList<>();
+
+            Map<String, String> systemMessage =
+                    new HashMap<>();
+
+            systemMessage.put(
+                    "role",
+                    "system"
+            );
+
+            systemMessage.put(
+                    "content",
+
+                    "You are AIForge AI assistant. "
+                            +
+                            "Answer clearly and professionally. "
+                            +
+                            "Use live internet data when available.\n\n"
+                            +
+                            liveData.toString()
+            );
+
+            Map<String, String> userMessage =
+                    new HashMap<>();
+
+            userMessage.put(
+                    "role",
+                    "user"
+            );
+
+            userMessage.put(
+                    "content",
+                    prompt
+            );
+
+            messages.add(systemMessage);
+
+            messages.add(userMessage);
+
+            aiBody.put(
+                    "messages",
+                    messages
+            );
+
+            HttpEntity<Map<String, Object>>
+                    aiRequest =
+                    new HttpEntity<>(
+                            aiBody,
+                            aiHeaders
                     );
 
-            Object response =
-                    webClient.post()
+            ResponseEntity<Map> aiResponse =
+                    restTemplate.exchange(
+                            aiUrl,
+                            HttpMethod.POST,
+                            aiRequest,
+                            Map.class
+                    );
 
-                            .uri(url)
+            List<Map<String, Object>> choices =
+                    (List<Map<String, Object>>)
+                            aiResponse
+                                    .getBody()
+                                    .get("choices");
 
-                            .header(
-                                    HttpHeaders.AUTHORIZATION,
+            Map<String, Object> firstChoice =
+                    choices.get(0);
 
-                                    "Bearer " + apiKey
-                            )
+            Map<String, String> message =
+                    (Map<String, String>)
+                            firstChoice.get("message");
 
-                            .header(
-                                    "HTTP-Referer",
+            String answer =
+                    message.get("content");
 
-                                    "http://localhost:5173"
-                            )
+            result.put(
+                    "answer",
+                    answer
+            );
 
-                            .header(
-                                    "X-Title",
-
-                                    "AIForge"
-                            )
-
-                            .contentType(
-                                    MediaType.APPLICATION_JSON
-                            )
-
-                            .bodyValue(requestBody)
-
-                            .retrieve()
-
-                            .bodyToMono(Object.class)
-
-                            .block();
-
-            return response;
         }
 
         catch (Exception e) {
 
-            e.printStackTrace();
-
-            return Map.of(
-                    "error",
-                    e.getMessage()
+            result.put(
+                    "answer",
+                    "AI Error : "
+                            + e.getMessage()
             );
         }
+
+        return result;
     }
 }
