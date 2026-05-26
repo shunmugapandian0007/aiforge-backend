@@ -154,7 +154,7 @@ public class AiController {
 
             aiBody.put(
                     "model",
-                    "openai/gpt-3.5-turbo"
+                    "mistralai/mistral-7b-instruct"
             );
 
             List<Map<String, String>> messages =
